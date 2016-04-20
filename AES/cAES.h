@@ -28,5 +28,7 @@ private:
 	//private methods
 	uint8_t* rcon(int round);
 
+	uint8_t* k(int offset);
+
 };
 
