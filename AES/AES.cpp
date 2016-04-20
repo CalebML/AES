@@ -6,9 +6,9 @@
 #include "Column.h"
 #include <stdio.h>
 
-int main()
+int _tmain(int argc, _TCHAR* argv[])
 {
-	
+
 	//cAES()
 
     return 0;
