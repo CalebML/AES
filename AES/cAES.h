@@ -25,6 +25,8 @@ private:
 	const static uint8_t invertSBoxLookupTable[16][16];
 	
 
+	//private methods
+	uint8_t* rcon(int round);
 
 };
 
