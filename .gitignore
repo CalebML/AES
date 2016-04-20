@@ -33,3 +33,12 @@
 *.opendb
 *.vcxproj
 *.vcxproj.filters
+
+*.log
+*.pdb
+*.ilk
+*.ipch
+*.tlog
+*.lastbuildstate
+*.suo
+*.idb

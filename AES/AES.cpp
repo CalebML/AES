@@ -2,10 +2,15 @@
 //
 
 #include "stdafx.h"
-
+#include "cAES.h"
+#include "Column.h"
+#include <stdio.h>
 
 int main()
 {
+	
+	//cAES()
+
     return 0;
 }
 

@@ -2,8 +2,12 @@
 #include "cAES.h"
 
 
-cAES::cAES()
+cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 {
+	m_msg = initmsg;
+	m_key = initKey;
+
+
 }
 
 
