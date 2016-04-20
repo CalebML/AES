@@ -158,3 +158,14 @@ uint8_t cAES::inverseSBoxLookup(uint8_t hexValue)
 
 	return retVal;
 }
+
+uint8_t* cAES::k(int offset)
+{
+	uint8_t retval[4] = { 0 };
+	retval[0] = m_key[offset];
+	retval[1] = m_key[offset + 1];
+	retval[2] = m_key[offset + 2];
+	retval[3] = m_key[offset + 3];
+
+	return retval;
+}
