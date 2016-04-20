@@ -9,6 +9,10 @@ public:
 	~cAES();
 
 
+	uint8_t SBoxLookup(uint8_t hexValue);
+
+	uint8_t inverseSBoxLookup(uint8_t hexValue);
+
 private:
 	//member variables
 	uint8_t *m_msg;

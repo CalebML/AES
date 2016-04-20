@@ -48,7 +48,29 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 
 }
 
-
 cAES::~cAES()
 {
+}
+
+uint8_t cAES::SBoxLookup(uint8_t hexValue)
+{
+	uint8_t retVal = 0;
+	uint8_t hex0 = 0;
+	uint8_t hex1 = 0;
+
+	hex0 = hexValue & 0x0F;
+	hex1 = (hexValue & 0xF0) >> 4;
+
+	retVal = cAES::SBoxLookupTable[hex1][hex0];
+
+	return retVal;
+}
+
+uint8_t cAES::inverseSBoxLookup(uint8_t hexValue)
+{
+	uint8_t retVal = 0;
+
+
+
+	return retVal;
 }
