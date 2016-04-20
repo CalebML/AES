@@ -8,13 +8,9 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-<<<<<<< HEAD
-	return 0;
-=======
-	
+
 	//cAES()
 
     return 0;
->>>>>>> refs/remotes/origin/master
 }
 
