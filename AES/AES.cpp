@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <iostream>
 
-int main()
+int _tmain(int argc, _TCHAR* argv[])
 {
 	char* message;
 	char* key;
