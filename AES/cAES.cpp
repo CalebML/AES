@@ -82,3 +82,51 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 cAES::~cAES()
 {
 }
+
+
+uint8_t* cAES::rcon(int round)
+{
+	uint8_t retval[4] = { 0 };
+	int key = round / 4;
+	key = key - 1;
+
+	switch (key)
+	{
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+		retval[0] = 1;
+		retval[0] = retval[0] << key;
+		break;
+	case 8:
+		retval[0] = 0x1B;
+		break;
+	case 9:
+		retval[0] = 0x36;
+		break;
+	case 10:
+		retval[0] = 0x6C;
+		break;
+	case 11:
+		retval[0] = 0xD8;
+		break;
+	case 12:
+		retval[0] = 0xAB;
+		break;
+	case 13:
+		retval[0] = 0x4D;
+		break;
+	case 14:
+		retval[0] = 0x9A;
+		break;
+	default:
+		break;
+	}
+
+	return retval;
+}
