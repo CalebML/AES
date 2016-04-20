@@ -2,6 +2,7 @@
 #include "Column.h"
 
 
+
 Column::Column()
 {
 	row0 = 0;
