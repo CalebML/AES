@@ -17,6 +17,8 @@ public:
 
 	void subWord(uint8_t* sub);
 
+	void shiftRow(uint8_t* sub);
+
 private:
 	//member variables
 	uint8_t *m_msg;
@@ -39,6 +41,8 @@ private:
 	void testRotateWord();
 
 	bool testSubWord();
+
+	bool testShiftRow();
 
 	//private methods
 	uint8_t* rcon(int round);

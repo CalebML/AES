@@ -129,6 +129,7 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 
 	testRotateWord();
 	testSubWord();
+	testShiftRow();
 }
 
 cAES::~cAES()
@@ -310,6 +311,102 @@ bool cAES::testSubWord()
 		{
 			retVal = false;
 		}
+	}
+
+	return retVal;
+}
+
+//takes 16 bytes, puts them into columns and rows, 
+// 1 5 9  13
+// 2 6 10 14
+// 3 7 11 15
+// 4 8 12 16
+//then rotates each row left across the columns
+//row 0 rotates 0 times
+//row 1 rotates 1 times
+//row 2 rotates 2 times
+//row 3 rotates 3 times
+void cAES::shiftRow(uint8_t* sub)
+{
+	uint8_t temp = 0;
+	//create correctly ordered unint8_t array
+	
+	uint8_t localArray[16];
+	for (int i = 0; i < 16; i++, sub++)
+	{
+		localArray[i] = *sub;
+	}
+	
+	//create columns and rows
+	std::vector<Column>::iterator it;
+	
+	for (int i = 0; i < 4; i++)
+	{
+		Column col(localArray[i * 4], localArray[(i * 4) + 1], localArray[(i * 4) + 2], localArray[(i * 4) + 3]);
+		//Column col(*sub++, *sub++, *sub++, *sub++);
+		
+		it = m_collumns.end(); //note this only works if the columns are empty
+		m_collumns.insert(it, col);
+	}
+	
+	//rotate across rows
+	//row 0 = no rotate
+	//row 1 = rotate one
+	temp = m_collumns[0].row1;
+	m_collumns[0].row1 = m_collumns[1].row1;
+	m_collumns[1].row1 = m_collumns[2].row1;
+	m_collumns[2].row1 = m_collumns[3].row1;
+	m_collumns[3].row1 = temp;
+
+	//row 2 = rotate two
+	std::swap(m_collumns[0].row2, m_collumns[2].row2);
+	std::swap(m_collumns[1].row2, m_collumns[3].row2);
+
+	//row 3 = rotate three
+	temp = m_collumns[0].row3;
+	m_collumns[0].row3 = m_collumns[3].row3;
+	m_collumns[3].row3 = m_collumns[2].row3;
+	m_collumns[2].row3 = m_collumns[1].row3;
+	m_collumns[1].row3 = temp;
+
+}
+
+bool cAES::testShiftRow()
+{
+	bool retVal = true;
+	uint8_t testArray[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+	shiftRow(testArray);
+
+	/*
+	uint8_t resultArray[4] = { 0x83, 0x2C, 0x1A, 0x1B };
+	for (int i = 0; i < 15; i++)
+	{
+		if (testArray[i] != resultArray[i])
+		{
+			retVal = false;
+		}
+	}
+	*/
+	Column testCol0(1, 6, 11, 16);
+	Column testCol1(5, 10, 15, 4);
+	Column testCol2(9, 14, 3, 8);
+	Column testCol3(13, 2, 7, 12);
+
+	if (!(m_collumns[0] == testCol0))
+	{
+		retVal = false;
+	}
+	else if (!(m_collumns[1] == testCol1))
+	{
+		retVal = false;
+	}
+	else if (!(m_collumns[2] == testCol2))
+	{
+		retVal = false;
+	}
+	else if (!(m_collumns[3] == testCol3))
+	{
+		retVal = false;
 	}
 
 	return retVal;
