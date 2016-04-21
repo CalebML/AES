@@ -141,6 +141,9 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 
 	uint8_t* test = ek(2);
 	***************************************/
+
+	testRotateWord();
+	testSubWord();
 }
 
 cAES::~cAES()
@@ -220,6 +223,32 @@ uint8_t cAES::inverseSBoxLookup(uint8_t hexValue)
 	retVal = cAES::invertSBoxLookupTable[hex1][hex0];
 
 	return retVal;
+}
+
+
+void cAES::rotateWord(uint8_t* rot)
+{
+	uint8_t* rotOriginal = rot;
+	uint8_t temp[4];
+	temp[3] = *rot; //rot[0]
+	rot++; //rot now at rot[1]
+	for (int i = 0; i <= 2; i++, rot++)
+	{
+		//temp[0] to temp[2] = rot[1] to rot[3]
+		temp[i] = *rot;
+	}
+	
+	rot = rotOriginal;
+	for (int i = 0; i <= 3; i++, rot++)
+	{
+		*rot = temp[i];
+	}
+}
+
+void cAES::testRotateWord()
+{
+	uint8_t tempArray[4] = { 4, 3, 2, 1 };
+	rotateWord(tempArray);
 }
 
 uint8_t* cAES::k(int offset)
@@ -306,5 +335,32 @@ uint8_t cAES::galoisMult(uint8_t byte1, uint8_t byte2)
 	hexPart2 = retVal % 16;
 	retVal = GaloisETable[hexPart1][hexPart2];
 
+	return retVal;
+}
+//runs the sbox subsitution on all 4 bytes passed in
+void cAES::subWord(uint8_t* sub)
+{
+	for (int i = 0; i < 3; i++, sub++)
+	{
+		*sub = SBoxLookup(*sub);
+	}
+}
+
+//true means passed, false means failed
+bool cAES::testSubWord()
+{
+	bool retVal = true;
+	//hex 0x41, 0x42, 0x43, 0x44
+	uint8_t testArray[4] = { 'A', 'B', 'C', 'D' };
+	subWord(testArray);
+	//resulting hex values: 0x83, 0x2c, 0x1A, 0x1B
+	uint8_t resultArray[4] = { 0x83, 0x2C, 0x1A, 0x1B };
+	for (int i = 0; i < 3; i++)
+	{
+		if (testArray[i] != resultArray[i])
+		{
+			retVal = false;
+		}
+	}
 	return retVal;
 }

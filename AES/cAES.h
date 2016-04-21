@@ -13,6 +13,10 @@ public:
 
 	uint8_t inverseSBoxLookup(uint8_t hexValue);
 
+	void rotateWord(uint8_t* rot);
+
+	void subWord(uint8_t* sub);
+
 private:
 	//member variables
 	uint8_t *m_msg;
@@ -34,6 +38,11 @@ private:
 
 	const static uint8_t DecryptMultiplicationMatrix[4][4];
 	
+
+	//testing functions
+	void testRotateWord();
+
+	bool testSubWord();
 
 	//private methods
 	uint8_t* rcon(int round);
