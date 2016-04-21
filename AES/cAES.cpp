@@ -78,6 +78,13 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 
 	m_msg[17] = '\0';
 	m_key[17] = '\0';
+
+	/****************TESTING****************
+	m_collumns.push_back(Column(1, 2, 3, 4));
+	m_collumns.push_back(Column(5, 6, 7, 8));
+
+	uint8_t* test = ek(2);
+	***************************************/
 }
 
 cAES::~cAES()
@@ -166,6 +173,45 @@ uint8_t* cAES::k(int offset)
 	retval[1] = m_key[offset + 1];
 	retval[2] = m_key[offset + 2];
 	retval[3] = m_key[offset + 3];
+
+	return retval;
+}
+
+uint8_t* cAES::ek(int offset)
+{
+	uint8_t retval[4] = { 0 };
+
+	int collumn = offset / 4;
+	int row = offset % 4;
+
+	//we should really restructure the collunm class so it holds an array of rows or something.  
+	//we could even turn it into a struct because there are no methods, and nothing is private.  
+	for (int i = 0; i < 4; i++)
+	{
+		switch (row)
+		{
+		case 0:
+			retval[i] = m_collumns[collumn].row0;
+			break;
+		case 1:
+			retval[i] = m_collumns[collumn].row1;
+			break;
+		case 2:
+			retval[i] = m_collumns[collumn].row2;
+			break;
+		case 3:
+			retval[i] = m_collumns[collumn].row3;
+			break;
+		default:
+			break;
+		}
+
+		if (++row > 3)
+		{
+			collumn++;
+			row = 0;
+		}
+	}
 
 	return retval;
 }
