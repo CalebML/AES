@@ -119,7 +119,7 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 		}
 
 		//copy the first 16 bytes of the message into the state
-		m_state[i] = m_msg[i];
+		//m_state[i] = m_msg[i];
 
 		//copy key argument to key variable, expand if key is smaller than 16 bytes
 		if (keyLen == 0 && initKey[i] != '\0')
@@ -157,12 +157,18 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 
 	testRotateWord();
 	testSubWord();
+	testMixColumns();
 	testShiftRow();
 	keyExpansion();
 }
 
 cAES::~cAES()
 {
+}
+
+uint8_t* cAES::Encrypt()
+{
+
 }
 
 uint8_t* cAES::rcon(int round)
@@ -353,6 +359,49 @@ uint8_t cAES::galoisMult(uint8_t byte1, uint8_t byte2)
 
 	return retVal;
 }
+
+void cAES::mixColumns()
+{
+	std::vector<Column> oldState = m_state;
+
+	for (int i = 0; i < 4; i++)
+	{
+		m_state[i].row0 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[0][0])
+			^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[0][1])
+			^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[0][2])
+			^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[0][3]);
+
+		m_state[i].row1 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[1][0])
+			^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[1][1])
+			^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[1][2])
+			^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[1][3]);
+
+		m_state[i].row2 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[2][0])
+			^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[2][1])
+			^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[2][2])
+			^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[2][3]);
+
+		m_state[i].row3 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[3][0])
+			^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[3][1])
+			^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[3][2])
+			^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[3][3]);
+	}
+}
+
+//test the mix columns function
+void cAES::testMixColumns()
+{
+	//populate m_state
+	m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
+	m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
+	m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
+	m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
+
+	mixColumns();
+	//m_state should now contain { 0x04, 0x66, 0x81, 0xE5 } in each column
+	//TODO: make this return a bool for auto testing
+}
+
 //runs the sbox subsitution on all 4 bytes passed in
 void cAES::subWord(uint8_t* sub)
 {
@@ -517,9 +566,11 @@ void cAES::keyExpansion()
 	{
 		if ( (i % 4) == 0)
 		{
+			/**********************************************  -- Commented out of master until working
 			Column localColumn(subWord(rotateWord(ek(4 - 1) * 4))) ^ rcon((4 / 4) - 1) ^ ek((4 - 4) * 4); // THIS LINE IS INCOMPLETE AND NOT TESTED (not sure what to do about mismatch of pointers for multiplication and XOR)
 			it = m_keyColumns.end();
 			m_keyColumns.insert(it, localColumn);
+			***********************************************/
 		}
 	}
 
