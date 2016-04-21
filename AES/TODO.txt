@@ -1,8 +1,8 @@
-Add round Key
+Add round Key - Cal
 Init Classes --DONE
 byte sub 
 	sbox lookup table --DONE
-	shift row - Cal
+	shift row - Done
 Mix Column --Caleb
 Key expansion
 	Rotate Word -Done
