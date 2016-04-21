@@ -12,8 +12,6 @@ public:
 
 	void shiftRow(uint8_t* sub);
 
-	void addRoundKey(uint8_t* state);
-
 	void keyExpansion();
 
 private:
@@ -25,7 +23,7 @@ private:
 						//no fast random access, which we will want.  
 	std::vector<Column> m_state;	//16 byte state/CryptoText
 
-	//uint8_t m_state[16];		//not used??
+	//uint8_t m_state[16];		//not used?
 
 	uint8_t kRetVal[4];
 
@@ -53,6 +51,8 @@ private:
 
 	bool testShiftRow();
 
+	void testAddRoundKey();
+
 	//private methods
 	uint8_t* rcon(int round);
 
@@ -71,5 +71,7 @@ private:
 	void rotateWord(uint8_t* rot);
 
 	void subWord(uint8_t* sub);
+
+	void addRoundKey();
 };
 
