@@ -19,6 +19,8 @@ public:
 
 	void shiftRow(uint8_t* sub);
 
+	void addRoundKey(uint8_t* state);
+
 private:
 	//member variables
 	uint8_t *m_msg;
@@ -26,6 +28,8 @@ private:
 	std::vector<Column> m_collumns;		//changed to vector
 						//list are usually linked list, or used as such.
 						//no fast random access, which we will want.  
+
+	uint8_t m_state[16];
 	
 	const static uint8_t SBoxLookupTable[16][16];
 		
