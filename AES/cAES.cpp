@@ -126,6 +126,9 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 
 	uint8_t* test = ek(2);
 	***************************************/
+
+	testRotateWord();
+	testSubWord();
 }
 
 cAES::~cAES()
@@ -281,4 +284,33 @@ uint8_t* cAES::ek(int offset)
 	}
 
 	return retval;
+}
+
+//runs the sbox subsitution on all 4 bytes passed in
+void cAES::subWord(uint8_t* sub)
+{
+	for (int i = 0; i < 3; i++, sub++)
+	{
+		*sub = SBoxLookup(*sub);
+	}
+}
+
+//true means passed, false means failed
+bool cAES::testSubWord()
+{
+	bool retVal = true;
+	//hex 0x41, 0x42, 0x43, 0x44
+	uint8_t testArray[4] = { 'A', 'B', 'C', 'D' };
+	subWord(testArray);
+	//resulting hex values: 0x83, 0x2c, 0x1A, 0x1B
+	uint8_t resultArray[4] = { 0x83, 0x2C, 0x1A, 0x1B };
+	for (int i = 0; i < 3; i++)
+	{
+		if (testArray[i] != resultArray[i])
+		{
+			retVal = false;
+		}
+	}
+
+	return retVal;
 }
