@@ -120,6 +120,7 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 
 		//copy the first 16 bytes of the message into the state
 		//m_state[i] = m_msg[i];
+		//moved to encrypt		-The object can't return a value on construction, a public encrypt fnction can
 
 		//copy key argument to key variable, expand if key is smaller than 16 bytes
 		if (keyLen == 0 && initKey[i] != '\0')
@@ -155,6 +156,7 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 	uint8_t* test = ek(2);
 	***************************************/
 
+	testAddRoundKey();
 	testRotateWord();
 	testSubWord();
 	testMixColumns();
@@ -168,7 +170,7 @@ cAES::~cAES()
 
 uint8_t* cAES::Encrypt()
 {
-
+	return NULL;
 }
 
 uint8_t* cAES::rcon(int round)
@@ -543,10 +545,40 @@ bool cAES::testShiftRow()
 	return retVal;
 }
 
-void cAES::addRoundKey(uint8_t* state)
+void cAES::addRoundKey()
 {
+	//keeps track of how many times this function has been called
+	static int timesCalled = 0;
+	timesCalled++;
 
+	for (int i = 0; i < 4; i++)
+	{
+		m_state[i].row0 = m_state[i].row0 ^ m_keyColumns[i * timesCalled].row0;
+		m_state[i].row1 = m_state[i].row1 ^ m_keyColumns[i * timesCalled].row1;
+		m_state[i].row2 = m_state[i].row2 ^ m_keyColumns[i * timesCalled].row2;
+		m_state[i].row3 = m_state[i].row3 ^ m_keyColumns[i * timesCalled].row3;
+	}
+}
 
+void cAES::testAddRoundKey()
+{
+	//setup
+	m_state.push_back(Column(1, 2, 3, 4));
+	m_state.push_back(Column(1, 2, 3, 4));
+	m_state.push_back(Column(1, 2, 3, 4));
+	m_state.push_back(Column(1, 2, 3, 4));
+
+	m_keyColumns.push_back(Column(2, 3, 4, 5));
+	m_keyColumns.push_back(Column(5, 6, 7, 8));
+	m_keyColumns.push_back(Column(12, 13, 15, 14));
+	m_keyColumns.push_back(Column(3, 5, 7, 9));
+	m_keyColumns.push_back(Column(9, 10, 11, 12));
+	m_keyColumns.push_back(Column(13, 14, 15, 16));
+	m_keyColumns.push_back(Column(17, 18, 19, 20));
+	m_keyColumns.push_back(Column(1, 2, 3, 4));
+
+	addRoundKey();
+	addRoundKey();
 }
 
 void cAES::keyExpansion()
