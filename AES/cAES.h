@@ -21,15 +21,19 @@ public:
 
 	void addRoundKey(uint8_t* state);
 
+	void keyExpansion();
+
 private:
 	//member variables
 	uint8_t *m_msg;
 	uint8_t *m_key;
-	std::vector<Column> m_collumns;		//changed to vector
+	std::vector<Column> m_keyColumns;		//changed to vector
 						//list are usually linked list, or used as such.
 						//no fast random access, which we will want.  
 
 	uint8_t m_state[16];
+
+	uint8_t kRetVal[4];
 	
 	const static uint8_t SBoxLookupTable[16][16];
 		

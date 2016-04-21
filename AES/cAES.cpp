@@ -103,6 +103,7 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 	m_key = new uint8_t[17];
 
 	int keyLen = 0;
+	int keyLenMult = 1;
 	int messageEnd = 0;
 
 	for (int i = 0; i < 17; i++)
@@ -120,6 +121,7 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 		//copy the first 16 bytes of the message into the state
 		m_state[i] = m_msg[i];
 
+		//copy key argument to key variable, expand if key is smaller than 16 bytes
 		if (keyLen == 0 && initKey[i] != '\0')
 		{
 			m_key[i] = initKey[i];
@@ -127,11 +129,17 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 		else if (keyLen == 0 && initKey[i] == '\0')
 		{
 			keyLen = i;
+			//keyLenMult = 1;
 			m_key[i] = initKey[0];
 		}
 		else
 		{
-			m_key[i] = initKey[i - keyLen];
+			//make it loop multiple times (more than just 2)
+			if ((i - keyLen*keyLenMult) == keyLen)
+			{
+				keyLenMult += 1;
+			}
+			m_key[i] = initKey[i - keyLen*keyLenMult];
 		}
 	}
 
@@ -141,8 +149,8 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 
 
 	/****************TESTING****************
-	m_collumns.push_back(Column(1, 2, 3, 4));
-	m_collumns.push_back(Column(5, 6, 7, 8));
+	m_keyColumns.push_back(Column(1, 2, 3, 4));
+	m_keyColumns.push_back(Column(5, 6, 7, 8));
 
 	uint8_t* test = ek(2);
 	***************************************/
@@ -150,6 +158,7 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 	testRotateWord();
 	testSubWord();
 	testShiftRow();
+	keyExpansion();
 }
 
 cAES::~cAES()
@@ -259,13 +268,14 @@ void cAES::testRotateWord()
 
 uint8_t* cAES::k(int offset)
 {
-	uint8_t retval[4] = { 0 };
-	retval[0] = m_key[offset];
-	retval[1] = m_key[offset + 1];
-	retval[2] = m_key[offset + 2];
-	retval[3] = m_key[offset + 3];
 
-	return retval;
+	kRetVal[4] = { 0 }; // can't return an array of local values without allocating them?
+	kRetVal[0] = m_key[offset];
+	kRetVal[1] = m_key[offset + 1];
+	kRetVal[2] = m_key[offset + 2];
+	kRetVal[3] = m_key[offset + 3];
+
+	return kRetVal;
 }
 
 uint8_t* cAES::ek(int offset)
@@ -282,16 +292,16 @@ uint8_t* cAES::ek(int offset)
 		switch (row)
 		{
 		case 0:
-			retval[i] = m_collumns[collumn].row0;
+			retval[i] = m_keyColumns[collumn].row0;
 			break;
 		case 1:
-			retval[i] = m_collumns[collumn].row1;
+			retval[i] = m_keyColumns[collumn].row1;
 			break;
 		case 2:
-			retval[i] = m_collumns[collumn].row2;
+			retval[i] = m_keyColumns[collumn].row2;
 			break;
 		case 3:
-			retval[i] = m_collumns[collumn].row3;
+			retval[i] = m_keyColumns[collumn].row3;
 			break;
 		default:
 			break;
@@ -403,7 +413,7 @@ void cAES::shiftRow(uint8_t* sub)
 		Column col(localArray[i * 4], localArray[(i * 4) + 1], localArray[(i * 4) + 2], localArray[(i * 4) + 3]);
 		//Column col(*sub++, *sub++, *sub++, *sub++);
 
-		it = localColumn.end(); //note this only works if the columns are empty
+		it = localColumn.end();
 		localColumn.insert(it, col);
 	}
 
@@ -486,5 +496,31 @@ bool cAES::testShiftRow()
 
 void cAES::addRoundKey(uint8_t* state)
 {
+
+
+}
+
+void cAES::keyExpansion()
+{
+	std::vector<Column>::iterator it;
+	
+	//rounds 0-3
+	for (int i = 0; i < 16; i += 4)
+	{
+		Column localColumn(k(i));
+		it = m_keyColumns.end(); //note this only works if the columns are empty when you begin
+		m_keyColumns.insert(it, localColumn);
+	}
+
+	//rounds 4-43
+	for (int i = 4; i < 44; i++)
+	{
+		if ( (i % 4) == 0)
+		{
+			Column localColumn(subWord(rotateWord(ek(4 - 1) * 4))) ^ rcon((4 / 4) - 1) ^ ek((4 - 4) * 4); // THIS LINE IS INCOMPLETE AND NOT TESTED (not sure what to do about mismatch of pointers for multiplication and XOR)
+			it = m_keyColumns.end();
+			m_keyColumns.insert(it, localColumn);
+		}
+	}
 
 }

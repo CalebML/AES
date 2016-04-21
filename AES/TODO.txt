@@ -4,7 +4,7 @@ byte sub
 	sbox lookup table --DONE
 	shift row - Done
 Mix Column --Caleb
-Key expansion - Cal
+Key expansion - PARTIALLY DONE
 	Rotate Word -Done
 	sub Word - Done
 	RCON lookup --DONE
