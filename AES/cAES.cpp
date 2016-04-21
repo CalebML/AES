@@ -117,6 +117,9 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 			m_msg[i] = '0';
 		}
 
+		//copy the first 16 bytes of the message into the state
+		m_state[i] = m_msg[i];
+
 		if (keyLen == 0 && initKey[i] != '\0')
 		{
 			m_key[i] = initKey[i];
@@ -134,6 +137,8 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 
 	m_msg[17] = '\0';
 	m_key[17] = '\0';
+
+
 
 	/****************TESTING****************
 	m_collumns.push_back(Column(1, 2, 3, 4));
@@ -378,47 +383,62 @@ bool cAES::testSubWord()
 //row 3 rotates 3 times
 void cAES::shiftRow(uint8_t* sub)
 {
+	uint8_t* originalSub = sub;
+	std::vector<Column> localColumn;
+
 	uint8_t temp = 0;
 	//create correctly ordered unint8_t array
-	
+
 	uint8_t localArray[16];
 	for (int i = 0; i < 16; i++, sub++)
 	{
 		localArray[i] = *sub;
 	}
-	
+
 	//create columns and rows
 	std::vector<Column>::iterator it;
-	
+
 	for (int i = 0; i < 4; i++)
 	{
 		Column col(localArray[i * 4], localArray[(i * 4) + 1], localArray[(i * 4) + 2], localArray[(i * 4) + 3]);
 		//Column col(*sub++, *sub++, *sub++, *sub++);
-		
-		it = m_collumns.end(); //note this only works if the columns are empty
-		m_collumns.insert(it, col);
+
+		it = localColumn.end(); //note this only works if the columns are empty
+		localColumn.insert(it, col);
 	}
-	
+
 	//rotate across rows
 	//row 0 = no rotate
 	//row 1 = rotate one
-	temp = m_collumns[0].row1;
-	m_collumns[0].row1 = m_collumns[1].row1;
-	m_collumns[1].row1 = m_collumns[2].row1;
-	m_collumns[2].row1 = m_collumns[3].row1;
-	m_collumns[3].row1 = temp;
+	temp = localColumn[0].row1;
+	localColumn[0].row1 = localColumn[1].row1;
+	localColumn[1].row1 = localColumn[2].row1;
+	localColumn[2].row1 = localColumn[3].row1;
+	localColumn[3].row1 = temp;
 
 	//row 2 = rotate two
-	std::swap(m_collumns[0].row2, m_collumns[2].row2);
-	std::swap(m_collumns[1].row2, m_collumns[3].row2);
+	std::swap(localColumn[0].row2, localColumn[2].row2);
+	std::swap(localColumn[1].row2, localColumn[3].row2);
 
 	//row 3 = rotate three
-	temp = m_collumns[0].row3;
-	m_collumns[0].row3 = m_collumns[3].row3;
-	m_collumns[3].row3 = m_collumns[2].row3;
-	m_collumns[2].row3 = m_collumns[1].row3;
-	m_collumns[1].row3 = temp;
+	temp = localColumn[0].row3;
+	localColumn[0].row3 = localColumn[3].row3;
+	localColumn[3].row3 = localColumn[2].row3;
+	localColumn[2].row3 = localColumn[1].row3;
+	localColumn[1].row3 = temp;
 
+	sub = originalSub;
+	for (int i = 0; i < 4; i++)
+	{
+		*sub = localColumn[i].row0;
+		sub++;
+		*sub = localColumn[i].row1;
+		sub++;
+		*sub = localColumn[i].row2;
+		sub++;
+		*sub = localColumn[i].row3;
+		sub++;
+	}
 }
 
 bool cAES::testShiftRow()
@@ -427,37 +447,44 @@ bool cAES::testShiftRow()
 	uint8_t testArray[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 	shiftRow(testArray);
 
-	/*
-	uint8_t resultArray[4] = { 0x83, 0x2C, 0x1A, 0x1B };
-	for (int i = 0; i < 15; i++)
+	uint8_t finalArray[16] = { 1, 6, 11, 16, 5, 10, 15, 4, 9, 14, 3, 8, 13, 2, 7, 12 };
+
+	for (int i = 0; i < 16; i++)
 	{
-		if (testArray[i] != resultArray[i])
+		if (testArray[i] != finalArray[i])
 		{
 			retVal = false;
 		}
 	}
-	*/
+
+	/*
 	Column testCol0(1, 6, 11, 16);
 	Column testCol1(5, 10, 15, 4);
 	Column testCol2(9, 14, 3, 8);
 	Column testCol3(13, 2, 7, 12);
 
-	if (!(m_collumns[0] == testCol0))
+	if (!(localColumn[0] == testCol0))
 	{
 		retVal = false;
 	}
-	else if (!(m_collumns[1] == testCol1))
+	else if (!(localColumn[1] == testCol1))
 	{
 		retVal = false;
 	}
-	else if (!(m_collumns[2] == testCol2))
+	else if (!(localColumn[2] == testCol2))
 	{
 		retVal = false;
 	}
-	else if (!(m_collumns[3] == testCol3))
+	else if (!(localColumn[3] == testCol3))
 	{
 		retVal = false;
 	}
+	*/
 
 	return retVal;
+}
+
+void cAES::addRoundKey(uint8_t* state)
+{
+
 }
