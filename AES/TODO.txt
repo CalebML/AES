@@ -1,10 +1,10 @@
-Add round Key - Cal
+Add round Key 
 Init Classes --DONE
 byte sub 
 	sbox lookup table --DONE
 	shift row - Done
 Mix Column --Caleb
-Key expansion
+Key expansion - Cal
 	Rotate Word -Done
 	sub Word - Done
 	RCON lookup --DONE
