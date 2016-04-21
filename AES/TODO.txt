@@ -1,0 +1,12 @@
+Add round Key
+Init Classes --DONE
+byte sub 
+	sbox lookup table --DONE
+	shift row
+Mix Column --Caleb
+Key expansion
+	Rotate Word -Done
+	sub Word -?
+	RCON lookup --DONE
+	EK --DONE
+	K --DONE
