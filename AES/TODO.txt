@@ -2,11 +2,11 @@ Add round Key
 Init Classes --DONE
 byte sub 
 	sbox lookup table --DONE
-	shift row
+	shift row - Cal
 Mix Column --Caleb
 Key expansion
 	Rotate Word -Done
-	sub Word - Cal
+	sub Word - Done
 	RCON lookup --DONE
 	EK --DONE
 	K --DONE
