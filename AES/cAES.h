@@ -15,6 +15,8 @@ public:
 
 	void rotateWord(uint8_t* rot);
 
+	void subWord(uint8_t* sub);
+
 private:
 	//member variables
 	uint8_t *m_msg;
