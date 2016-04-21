@@ -38,6 +38,8 @@ private:
 	//testing functions
 	void testRotateWord();
 
+	bool testSubWord();
+
 	//private methods
 	uint8_t* rcon(int round);
 
