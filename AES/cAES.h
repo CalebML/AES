@@ -8,14 +8,7 @@ public:
 	cAES(uint8_t* initMsg, uint8_t* initKey);
 	~cAES();
 
-
-	uint8_t SBoxLookup(uint8_t hexValue);
-
-	uint8_t inverseSBoxLookup(uint8_t hexValue);
-
-	void rotateWord(uint8_t* rot);
-
-	void subWord(uint8_t* sub);
+	uint8_t* Encrypt();
 
 private:
 	//member variables
@@ -24,9 +17,11 @@ private:
 	std::vector<Column> m_collumns;		//changed to vector
 						//list are usually linked list, or used as such.
 						//no fast random access, which we will want.  
+	std::vector<Column> m_state;	//16 byte state/CryptoText
 	
+
+	//Const tables
 	const static uint8_t SBoxLookupTable[16][16];
-		
 
 	const static uint8_t invertSBoxLookupTable[16][16];
 
@@ -44,6 +39,9 @@ private:
 
 	bool testSubWord();
 
+	void testMixColumns();
+
+
 	//private methods
 	uint8_t* rcon(int round);
 
@@ -53,5 +51,14 @@ private:
 
 	uint8_t galoisMult(uint8_t byte1, uint8_t byte2);
 
+	void mixColumns();
+
+	uint8_t SBoxLookup(uint8_t hexValue);
+
+	uint8_t inverseSBoxLookup(uint8_t hexValue);
+
+	void rotateWord(uint8_t* rot);
+
+	void subWord(uint8_t* sub);
 };
 

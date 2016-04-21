@@ -3,7 +3,7 @@ Init Classes --DONE
 byte sub 
 	sbox lookup table --DONE
 	shift row - Cal
-Mix Column --Caleb
+Mix Column --DONE
 Key expansion
 	Rotate Word -Done
 	sub Word - Done
