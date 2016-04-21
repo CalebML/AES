@@ -3,10 +3,10 @@ Init Classes --DONE
 byte sub 
 	sbox lookup table --DONE
 	shift row
-Mix Column
+Mix Column --Caleb
 Key expansion
-	Rotate Word
-	sub Word
+	Rotate Word -? sorry i forgot which one you were working on
+	sub Word -?
 	RCON lookup --DONE
-	EK
+	EK --DONE
 	K --DONE
