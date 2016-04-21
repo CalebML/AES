@@ -6,7 +6,7 @@ byte sub
 Mix Column --Caleb
 Key expansion
 	Rotate Word -Done
-	sub Word -?
+	sub Word - Cal
 	RCON lookup --DONE
 	EK --DONE
 	K --DONE
