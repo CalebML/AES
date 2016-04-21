@@ -6,6 +6,8 @@ class Column
 public:
 	Column();
 	Column(uint8_t initRow0, uint8_t initRow1, uint8_t initRow2, uint8_t initRow3);
+	Column(uint8_t* rowData);
+	bool operator==(Column other);
 	~Column();
 
 	uint8_t row0;
