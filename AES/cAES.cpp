@@ -207,6 +207,32 @@ uint8_t cAES::inverseSBoxLookup(uint8_t hexValue)
 	return retVal;
 }
 
+
+void cAES::rotateWord(uint8_t* rot)
+{
+	uint8_t* rotOriginal = rot;
+	uint8_t temp[4];
+	temp[3] = *rot; //rot[0]
+	rot++; //rot now at rot[1]
+	for (int i = 0; i <= 2; i++, rot++)
+	{
+		//temp[0] to temp[2] = rot[1] to rot[3]
+		temp[i] = *rot;
+	}
+	
+	rot = rotOriginal;
+	for (int i = 0; i <= 3; i++, rot++)
+	{
+		*rot = temp[i];
+	}
+}
+
+void cAES::testRotateWord()
+{
+	uint8_t tempArray[4] = { 4, 3, 2, 1 };
+	rotateWord(tempArray);
+}
+
 uint8_t* cAES::k(int offset)
 {
 	uint8_t retval[4] = { 0 };

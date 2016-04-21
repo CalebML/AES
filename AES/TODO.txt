@@ -5,8 +5,8 @@ byte sub
 	shift row
 Mix Column --Caleb
 Key expansion
-	Rotate Word -? sorry i forgot which one you were working on
-	sub Word -?
+	Rotate Word -Done
+	sub Word - Cal
 	RCON lookup --DONE
 	EK --DONE
 	K --DONE

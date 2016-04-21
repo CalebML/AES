@@ -13,6 +13,8 @@ public:
 
 	uint8_t inverseSBoxLookup(uint8_t hexValue);
 
+	void rotateWord(uint8_t* rot);
+
 private:
 	//member variables
 	uint8_t *m_msg;
@@ -30,6 +32,9 @@ private:
 
 	const static uint8_t GaloisETable[16][16];
 	
+
+	//testing functions
+	void testRotateWord();
 
 	//private methods
 	uint8_t* rcon(int round);
