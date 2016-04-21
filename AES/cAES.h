@@ -21,13 +21,17 @@ private:
 						//list are usually linked list, or used as such.
 						//no fast random access, which we will want.  
 	
-	
-	//private methods
 	const static uint8_t SBoxLookupTable[16][16];
 		
 
 	const static uint8_t invertSBoxLookupTable[16][16];
+
+	const static uint8_t GaloisLTable[16][16];
+
+	const static uint8_t GaloisETable[16][16];
 	
+
+	//private methods
 	uint8_t* rcon(int round);
 
 	uint8_t* k(int offset);
