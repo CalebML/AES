@@ -81,6 +81,21 @@ const uint8_t cAES::GaloisETable[16][16] = {
 	{ 0x39, 0x4B, 0xDD, 0x7C, 0x84, 0x97, 0xA2, 0xFD, 0x1C, 0x24, 0x6C, 0xB4, 0xC7, 0x52, 0xF6, 0x01 } //15(F)
 };
 
+const uint8_t cAES::EncryptMultiplicationMatrix[4][4] =
+{
+	{2, 3, 1, 1},
+	{1, 2, 3, 1},
+	{1, 1, 2, 3},
+	{3, 1, 1, 2}
+};
+
+const uint8_t cAES::DecryptMultiplicationMatrix[4][4] =
+{
+	{ 0x0E, 0x0B, 0x0D, 0x09 },
+	{ 0x09, 0x0E, 0x0B, 0x0D },
+	{ 0x0D, 0x09, 0x0E, 0x0B },
+	{ 0x0B, 0x0D, 0x09, 0x0E }
+};
 
 cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 {
@@ -255,4 +270,41 @@ uint8_t* cAES::ek(int offset)
 	}
 
 	return retval;
+}
+
+uint8_t cAES::galoisMult(uint8_t byte1, uint8_t byte2)
+{
+	int hexPart1 = 0;
+	int hexPart2 = 0;
+	int retVal;
+
+	//lookup byte 1 in galois L table
+	//first find part 1 (first part of the byte in hex); if byte1 is less than 16, it is 0
+	if (byte1 > 16)
+	{
+		hexPart1 = byte1 / 16;
+	}
+	hexPart2 = byte1 % 16;
+
+	byte1 = GaloisLTable[hexPart1][hexPart2];
+
+	//repeat process for byte 2
+	hexPart1 = byte2 / 16;
+	hexPart2 = byte2 % 16;
+
+	byte2 = GaloisLTable[hexPart1][hexPart2];
+
+	//if sum greater than 0xFF, subtract 0xFF
+	retVal = byte1 + byte2;
+	if (retVal > 255)
+	{
+		retVal = retVal - 255;
+	}
+
+	//look up the (possably) modified sum on the E table to complete the multiply
+	hexPart1 = retVal / 16;
+	hexPart2 = retVal % 16;
+	retVal = GaloisETable[hexPart1][hexPart2];
+
+	return retVal;
 }

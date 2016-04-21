@@ -29,6 +29,10 @@ private:
 	const static uint8_t GaloisLTable[16][16];
 
 	const static uint8_t GaloisETable[16][16];
+
+	const static uint8_t EncryptMultiplicationMatrix[4][4];
+
+	const static uint8_t DecryptMultiplicationMatrix[4][4];
 	
 
 	//private methods
@@ -37,6 +41,8 @@ private:
 	uint8_t* k(int offset);
 
 	uint8_t* ek(int offset);
+
+	uint8_t galoisMult(uint8_t byte1, uint8_t byte2);
 
 };
 
