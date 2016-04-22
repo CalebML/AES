@@ -2,9 +2,15 @@ Add round Key
 Init Classes --DONE
 byte sub 
 	sbox lookup table --DONE
+<<<<<<< HEAD
+	shift row - Cal
+Mix Column --DONE
+Key expansion
+=======
 	shift row - Done
 Mix Column --Caleb
 Key expansion - PARTIALLY DONE
+>>>>>>> refs/remotes/origin/master
 	Rotate Word -Done
 	sub Word - Done
 	RCON lookup --DONE
