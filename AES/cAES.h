@@ -26,6 +26,8 @@ private:
 	//uint8_t m_state[16];		//not used?
 
 	uint8_t kRetVal[4];
+	uint8_t ekRetVal[4];
+	uint8_t rconRetVal[4];
 
 
 	//Const tables

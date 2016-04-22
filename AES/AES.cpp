@@ -14,8 +14,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	message = new char[500];
 	key = new char[100];
 
-	std::cout << "Please enter a message to encrypt: ";
+	std::cout << "Please enter a message to encrypt (Default is ABCDEFGHIJKLNOP): ";
 	gets_s(message, 500);
+	if (message[0] == '\0')
+	{
+		message = "ABCDEFGHIJKLNOP";
+	}
 
 	std::cout << "Please enter a key (Default is CSETOIT): ";
 	gets_s(key, 100);
