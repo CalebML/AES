@@ -156,7 +156,7 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 	uint8_t* test = ek(2);
 	***************************************/
 
-	testAddRoundKey();
+	//testAddRoundKey(); //disabled for now. Was filling up the keyColumns and not clearing them after, interfering with keyExpansion();
 	testRotateWord();
 	testSubWord();
 	testMixColumns();
@@ -175,7 +175,7 @@ uint8_t* cAES::Encrypt()
 
 uint8_t* cAES::rcon(int round)
 {
-	uint8_t retval[4] = { 0 };
+	//uint8_t retval[4] = { 0 };
 	int key = round / 4;
 	key = key - 1;
 
@@ -189,35 +189,35 @@ uint8_t* cAES::rcon(int round)
 	case 5:
 	case 6:
 	case 7:
-		retval[0] = 1;
-		retval[0] = retval[0] << key;
+		rconRetVal[0] = 1;
+		rconRetVal[0] = rconRetVal[0] << key;
 		break;
 	case 8:
-		retval[0] = 0x1B;
+		rconRetVal[0] = 0x1B;
 		break;
 	case 9:
-		retval[0] = 0x36;
+		rconRetVal[0] = 0x36;
 		break;
 	case 10:
-		retval[0] = 0x6C;
+		rconRetVal[0] = 0x6C;
 		break;
 	case 11:
-		retval[0] = 0xD8;
+		rconRetVal[0] = 0xD8;
 		break;
 	case 12:
-		retval[0] = 0xAB;
+		rconRetVal[0] = 0xAB;
 		break;
 	case 13:
-		retval[0] = 0x4D;
+		rconRetVal[0] = 0x4D;
 		break;
 	case 14:
-		retval[0] = 0x9A;
+		rconRetVal[0] = 0x9A;
 		break;
 	default:
 		break;
 	}
 
-	return retval;
+	return rconRetVal;
 }
 
 uint8_t cAES::SBoxLookup(uint8_t hexValue)
@@ -288,7 +288,7 @@ uint8_t* cAES::k(int offset)
 
 uint8_t* cAES::ek(int offset)
 {
-	uint8_t retval[4] = { 0 };
+	//uint8_t retval[4] = { 0 };
 
 	int collumn = offset / 4;
 	int row = offset % 4;
@@ -300,16 +300,16 @@ uint8_t* cAES::ek(int offset)
 		switch (row)
 		{
 		case 0:
-			retval[i] = m_keyColumns[collumn].row0;
+			ekRetVal[i] = m_keyColumns[collumn].row0;
 			break;
 		case 1:
-			retval[i] = m_keyColumns[collumn].row1;
+			ekRetVal[i] = m_keyColumns[collumn].row1;
 			break;
 		case 2:
-			retval[i] = m_keyColumns[collumn].row2;
+			ekRetVal[i] = m_keyColumns[collumn].row2;
 			break;
 		case 3:
-			retval[i] = m_keyColumns[collumn].row3;
+			ekRetVal[i] = m_keyColumns[collumn].row3;
 			break;
 		default:
 			break;
@@ -322,7 +322,7 @@ uint8_t* cAES::ek(int offset)
 		}
 	}
 
-	return retval;
+	return ekRetVal;
 }
 
 uint8_t cAES::galoisMult(uint8_t byte1, uint8_t byte2)
@@ -584,6 +584,11 @@ void cAES::testAddRoundKey()
 void cAES::keyExpansion()
 {
 	std::vector<Column>::iterator it;
+	uint8_t operationData[4] = { 0 };
+	uint8_t rconData[4] = { 0 };
+	uint8_t ekData[4] = { 0 };
+	uint8_t ekData2[4] = { 0 };
+	uint8_t * operationPointer;
 	
 	//rounds 0-3
 	for (int i = 0; i < 16; i += 4)
@@ -596,13 +601,57 @@ void cAES::keyExpansion()
 	//rounds 4-43
 	for (int i = 4; i < 44; i++)
 	{
-		if ( (i % 4) == 0)
+		if ( (i % 4) == 0) //only do this operation every 4 rounds
 		{
 			/**********************************************  -- Commented out of master until working
+
 			Column localColumn(subWord(rotateWord(ek(4 - 1) * 4))) ^ rcon((4 / 4) - 1) ^ ek((4 - 4) * 4); // THIS LINE IS INCOMPLETE AND NOT TESTED (not sure what to do about mismatch of pointers for multiplication and XOR)
 			it = m_keyColumns.end();
 			m_keyColumns.insert(it, localColumn);
 			***********************************************/
+			operationPointer = ek((i - 4) * 4);
+			for (int j = 0; j < 4; j++, operationPointer++)
+			{
+				operationData[j] = *operationPointer;
+			}
+
+			rotateWord(operationData);
+			subWord(operationData);
+
+			operationPointer = rcon(i);//rcon((i / (16 / 4)) - 1); //ex for 4th round and a 16 byte key: rcon(4/(16 / 4)) - 1 = 0
+			for (int j = 0; j < 4; j++, operationPointer++)
+			{
+				rconData[j] = *operationPointer;
+			}
+
+			operationPointer = ek((i - 4) * 4);
+			for (int j = 0; j < 4; j++, operationPointer++)
+			{
+				ekData[j] = *operationPointer;
+			}
+			
+			//Column localColumn(operationData);
+			Column localColumn(operationData[0] ^ rconData[0] ^ ekData[0], operationData[1] ^ rconData[1] ^ ekData[1], operationData[2] ^ rconData[2] ^ ekData[2], operationData[3] ^ rconData[3] ^ ekData[3]);
+			it = m_keyColumns.end();
+			m_keyColumns.insert(it, localColumn);
+		}
+		else
+		{
+			operationPointer = ek((i - 1) * 4);
+			for (int j = 0; j < 4; j++, operationPointer++)
+			{
+				ekData[j] = *operationPointer;
+			}
+
+			operationPointer = ek((i - 4) * 4);
+			for (int j = 0; j < 4; j++, operationPointer++)
+			{
+				ekData2[j] = *operationPointer;
+			}
+
+			Column localColumn(ekData[0] ^ ekData2[0], ekData[1] ^ ekData2[1], ekData[2] ^ ekData2[2], ekData[3] ^ ekData2[3]);
+			it = m_keyColumns.end();
+			m_keyColumns.insert(it, localColumn);
 		}
 	}
 
