@@ -178,7 +178,7 @@ uint8_t* cAES::Encrypt()
 	
 	//first the key is expanded.
 	//this takes 43 rounds of expansion, leaving a 43 column key(I think?)
-	/**************************************
+	/**************************************/
 	//for testing aginst this tool http://people.eku.edu/styere/Encrypt/JS-AES.html
 	//m_key = 0x0f1571c947d9e8590cb7add6af7f6798
 	m_key[0] = 0x0f;
@@ -422,9 +422,22 @@ uint8_t cAES::galoisMult(uint8_t byte1, uint8_t byte2)
 
 void cAES::mixColumns(uint8_t* localState)
 {
-	for(int i = 0; i < 16; i++)
+	int oldState[16];
+	for (int i = 0; i < 16; i++)
 	{
-		*localState = galoisMult(*localState, EncryptMultiplicationMatrix[i / 4][i % 4]);
+		oldState[i] = localState[i];
+	}
+	
+	for(int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			*localState = galoisMult(oldState[(i*4)], EncryptMultiplicationMatrix[j][0])
+				^ galoisMult(oldState[(i * 4) + 1], EncryptMultiplicationMatrix[j][1])
+				^ galoisMult(oldState[(i * 4) + 2], EncryptMultiplicationMatrix[j][2])
+				^ galoisMult(oldState[(i * 4) + 3], EncryptMultiplicationMatrix[j][3]);
+			localState++;
+		}
 	}
 	
 	//std::vector<Column> oldState = m_state;
