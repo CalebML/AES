@@ -122,6 +122,9 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 		//m_state[i] = m_msg[i];
 		//moved to encrypt		-The object can't return a value on construction, a public encrypt fnction can
 
+		//make sure the state is initalized
+		m_state[0] = 0;
+
 		//copy key argument to key variable, expand if key is smaller than 16 bytes
 		if (keyLen == 0 && initKey[i] != '\0')
 		{
@@ -161,16 +164,51 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 	testSubWord();
 	testMixColumns();
 	testShiftRow();
-	keyExpansion();
+	//keyExpansion();
 }
 
 cAES::~cAES()
 {
 }
 
+
+
 uint8_t* cAES::Encrypt()
 {
-	return NULL;
+	
+	//first the key is expanded.
+	//this takes 43 rounds of expansion, leaving a 43 column key(I think?)
+	keyExpansion();
+	
+	//then run the AES operations
+	//this takes 9 rounds excluding the first add round key operation
+	//each round uses 16 bytes of the key (4 columns)
+	
+	//start by initalizing the state to all 0's
+	for(int i = 0; i < 16; i++)
+	{
+		m_state[i] = 0;
+	}
+	
+	//then XOR in the first 4 columns of the key (XORing with 0's is like copying, XORing with all 1's is like inverting)
+	addRoundKey(m_state, 0);
+	
+	//do rounds 0-8 (example table rounds) or rounds 1-9 (real rounds)
+	for (int i = 1; i <= 9; i++)
+	{
+
+		byteSub(m_state);
+		shiftRow(m_state);
+		mixColumns(m_state);
+		addRoundKey(m_state, i);
+	}
+
+	//do final round
+	byteSub(m_state);
+	shiftRow(m_state);
+	addRoundKey(m_state, 10);
+	
+	return m_state;
 }
 
 uint8_t* cAES::rcon(int round)
@@ -362,44 +400,49 @@ uint8_t cAES::galoisMult(uint8_t byte1, uint8_t byte2)
 	return retVal;
 }
 
-void cAES::mixColumns()
+void cAES::mixColumns(uint8_t* localState)
 {
-	std::vector<Column> oldState = m_state;
-
-	for (int i = 0; i < 4; i++)
+	for(int i = 0; i < 16; i++)
 	{
-		m_state[i].row0 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[0][0])
-			^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[0][1])
-			^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[0][2])
-			^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[0][3]);
-
-		m_state[i].row1 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[1][0])
-			^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[1][1])
-			^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[1][2])
-			^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[1][3]);
-
-		m_state[i].row2 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[2][0])
-			^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[2][1])
-			^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[2][2])
-			^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[2][3]);
-
-		m_state[i].row3 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[3][0])
-			^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[3][1])
-			^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[3][2])
-			^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[3][3]);
+		*localState = galoisMult(*localState, EncryptMultiplicationMatrix[i / 4][i % 4]);
 	}
+	
+	//std::vector<Column> oldState = m_state;
+	//
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	m_state[i].row0 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[0][0])
+	//		^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[0][1])
+	//		^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[0][2])
+	//		^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[0][3]);
+	//
+	//	m_state[i].row1 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[1][0])
+	//		^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[1][1])
+	//		^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[1][2])
+	//		^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[1][3]);
+	//
+	//	m_state[i].row2 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[2][0])
+	//		^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[2][1])
+	//		^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[2][2])
+	//		^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[2][3]);
+	//
+	//	m_state[i].row3 = galoisMult(oldState[i].row0, EncryptMultiplicationMatrix[3][0])
+	//		^ galoisMult(oldState[i].row1, EncryptMultiplicationMatrix[3][1])
+	//		^ galoisMult(oldState[i].row2, EncryptMultiplicationMatrix[3][2])
+	//		^ galoisMult(oldState[i].row3, EncryptMultiplicationMatrix[3][3]);
+	//}
 }
 
 //test the mix columns function
 void cAES::testMixColumns()
 {
 	//populate m_state
-	m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
-	m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
-	m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
-	m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
+	//m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
+	//m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
+	//m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
+	//m_state.push_back(Column(0xD4, 0xBF, 0x5D, 0x30));
 
-	mixColumns();
+	//mixColumns();
 	//m_state should now contain { 0x04, 0x66, 0x81, 0xE5 } in each column
 	//TODO: make this return a bool for auto testing
 }
@@ -545,40 +588,49 @@ bool cAES::testShiftRow()
 	return retVal;
 }
 
-void cAES::addRoundKey()
+void cAES::addRoundKey(uint8_t* localState, int round)
 {
-	//keeps track of how many times this function has been called
-	static int timesCalled = 0;
-	timesCalled++;
-
+	uint8_t* originalState = localState;
+	//iterate over the 16 byte array passed in, and xor each byte, storing the result in the passed in byte array
 	for (int i = 0; i < 4; i++)
 	{
-		m_state[i].row0 = m_state[i].row0 ^ m_keyColumns[i * timesCalled].row0;
-		m_state[i].row1 = m_state[i].row1 ^ m_keyColumns[i * timesCalled].row1;
-		m_state[i].row2 = m_state[i].row2 ^ m_keyColumns[i * timesCalled].row2;
-		m_state[i].row3 = m_state[i].row3 ^ m_keyColumns[i * timesCalled].row3;
+		*localState = *localState ^ m_keyColumns[i + (round * 4)].row0;
+		localState++;
+		*localState = *localState ^ m_keyColumns[i + (round * 4)].row1;
+		localState++;
+		*localState = *localState ^ m_keyColumns[i + (round * 4)].row2;
+		localState++;
+		*localState = *localState ^ m_keyColumns[i + (round * 4)].row3;
+		localState++;
+
+		//localState[i].row0 = localState[i].row0 ^ m_keyColumns[i + (round * 4)].row0;
+		//localState[i].row1 = localState[i].row1 ^ m_keyColumns[i + (round * 4)].row1;
+		//localState[i].row2 = localState[i].row2 ^ m_keyColumns[i + (round * 4)].row2;
+		//localState[i].row3 = localState[i].row3 ^ m_keyColumns[i + (round * 4)].row3;
 	}
+	//reset the pointer at the end (may not be necessary)
+	localState = originalState;
 }
 
 void cAES::testAddRoundKey()
 {
 	//setup
-	m_state.push_back(Column(1, 2, 3, 4));
-	m_state.push_back(Column(1, 2, 3, 4));
-	m_state.push_back(Column(1, 2, 3, 4));
-	m_state.push_back(Column(1, 2, 3, 4));
+	//m_state.push_back(Column(1, 2, 3, 4));
+	//m_state.push_back(Column(1, 2, 3, 4));
+	//m_state.push_back(Column(1, 2, 3, 4));
+	//m_state.push_back(Column(1, 2, 3, 4));
+	//
+	//m_keyColumns.push_back(Column(2, 3, 4, 5));
+	//m_keyColumns.push_back(Column(5, 6, 7, 8));
+	//m_keyColumns.push_back(Column(12, 13, 15, 14));
+	//m_keyColumns.push_back(Column(3, 5, 7, 9));
+	//m_keyColumns.push_back(Column(9, 10, 11, 12));
+	//m_keyColumns.push_back(Column(13, 14, 15, 16));
+	//m_keyColumns.push_back(Column(17, 18, 19, 20));
+	//m_keyColumns.push_back(Column(1, 2, 3, 4));
 
-	m_keyColumns.push_back(Column(2, 3, 4, 5));
-	m_keyColumns.push_back(Column(5, 6, 7, 8));
-	m_keyColumns.push_back(Column(12, 13, 15, 14));
-	m_keyColumns.push_back(Column(3, 5, 7, 9));
-	m_keyColumns.push_back(Column(9, 10, 11, 12));
-	m_keyColumns.push_back(Column(13, 14, 15, 16));
-	m_keyColumns.push_back(Column(17, 18, 19, 20));
-	m_keyColumns.push_back(Column(1, 2, 3, 4));
-
-	addRoundKey();
-	addRoundKey();
+	//addRoundKey();
+	//addRoundKey();
 }
 
 void cAES::keyExpansion()
@@ -655,4 +707,13 @@ void cAES::keyExpansion()
 		}
 	}
 
+}
+
+//runs the sbox substitution on all 16 bytes passed in
+void cAES::byteSub(uint8_t* sub)
+{
+	for (int i = 0; i < 16; i++, sub++)
+	{
+		*sub = SBoxLookup(*sub);
+	}
 }

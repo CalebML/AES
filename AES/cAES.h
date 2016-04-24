@@ -10,9 +10,7 @@ public:
 
 	uint8_t* Encrypt();
 
-	void shiftRow(uint8_t* sub);
 
-	void keyExpansion();
 
 private:
 	//member variables
@@ -21,9 +19,9 @@ private:
 	std::vector<Column> m_keyColumns;		//changed to vector
 						//list are usually linked list, or used as such.
 						//no fast random access, which we will want.  
-	std::vector<Column> m_state;	//16 byte state/CryptoText
+	//std::vector<Column> m_state;	//16 byte state/CryptoText
 
-	//uint8_t m_state[16];		//not used?
+	uint8_t m_state[16];		//not used?
 
 	uint8_t kRetVal[4];
 	uint8_t ekRetVal[4];
@@ -64,7 +62,7 @@ private:
 
 	uint8_t galoisMult(uint8_t byte1, uint8_t byte2);
 
-	void mixColumns();
+	void mixColumns(uint8_t* localState);
 
 	uint8_t SBoxLookup(uint8_t hexValue);
 
@@ -74,6 +72,12 @@ private:
 
 	void subWord(uint8_t* sub);
 
-	void addRoundKey();
+	void addRoundKey(uint8_t* localState, int round);
+
+	void shiftRow(uint8_t* sub);
+
+	void keyExpansion();
+
+	void byteSub(uint8_t* sub);
 };
 

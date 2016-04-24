@@ -1,15 +1,13 @@
-Add round Key 
+Add round Key - Done (not tested)
 Init Classes --DONE
-byte sub 
+byte sub - Done (not tested)
 	sbox lookup table --DONE
 	shift row - DONE
-Mix Column --DONE
-Key expansion
-	shift row - Done
-Mix Column --Caleb
+Mix Column - Done (not tested)
 Key expansion - Done but not tested
 	Rotate Word -Done
 	sub Word - Done
-	RCON lookup --DONE
+	RCON lookup --DONE (not tested)
 	EK --DONE
 	K --DONE
+Encryption - Done, tested not working correctly (incorrect result when checked against online tool) (Where is the message included in the process??)
