@@ -178,7 +178,7 @@ uint8_t* cAES::Encrypt()
 	
 	//first the key is expanded.
 	//this takes 43 rounds of expansion, leaving a 43 column key(I think?)
-	/**************************************/
+	/**************************************
 	//for testing aginst this tool http://people.eku.edu/styere/Encrypt/JS-AES.html
 	//m_key = 0x0f1571c947d9e8590cb7add6af7f6798
 	m_key[0] = 0x0f;
