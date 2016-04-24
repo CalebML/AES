@@ -7,29 +7,67 @@
 #include <stdio.h>
 #include <iostream>
 
+using std::cout;
+using std::endl;
+
 int _tmain(int argc, _TCHAR* argv[])
 {
+	bool success = true;
 	char* message;
 	char* key;
+	uint8_t* uOutput;
+	char* output;
 	message = new char[500];
 	key = new char[100];
+	uOutput = new uint8_t[500];
+	output = new char[500];
+	uint8_t uOutputReference[] = { 0x49, 0xf4, 0x4e, 0x46, 0xe1, 0x5d, 0x48, 0xc6, 0xcb, 0x48, 0xc0, 0x62, 0xa4, 0x17, 0x14, 0x74, 0x00 }; //note that 0x00 at end is for string complete checking just in case
 
-	std::cout << "Please enter a message to encrypt: ";
+	std::cout << "Please enter a message to encrypt (Default is ABCDEFGHIJKLNOP): ";
 	gets_s(message, 500);
+	if (message[0] == '\0')
+	{
+		message = "ABCDEFGHIJKLNOP";
+	}
 
 	std::cout << "Please enter a key (Default is CSETOIT): ";
 	gets_s(key, 100);
 	if (key[0] == '\0')
 		key = "CSETOIT";
 
-	cAES((uint8_t*)message, (uint8_t*)key);
+	cAES AES((uint8_t*)message, (uint8_t*)key);
 
-	//first the key is expanded.
-	//this takes 43 rounds of expansion, leaving a 43 column key(I think?)
+	//TODO: loop input and output to iterate over multiple message blocks
+	uOutput = AES.Encrypt();
 
-	//then run the AES operations
-	//this takes 9 rounds excluding the first add round key operation
-	//each round uses 16 bytes of the key (4 columns)
+	std::cout << "Result: " << uOutput << endl << "Note: If your original message wasn't the default this check is not valid." << endl;
+
+	//output check generated from: http://aes.online-domain-tools.com/ (not 100% sure if this is correct)
+	//output should be:  {0x49, 0xf4, 0x4e, 0x46, 0xe1, 0x5d, 0x48, 0xc6, 0xcb, 0x48, 0xc0, 0x62, 0xa4, 0x17, 0x14, 0x74}
+	success = true;
+	for (int i = 0; i < 16; i++)
+	{
+		if (uOutputReference[i] != uOutput[i])
+		{
+			success = false;
+		}
+	}
+
+	if (success)
+	{
+		cout << "AES encryption succeded" << endl;
+	}
+	else
+	{
+		cout << "AES encryption failed" << endl;
+	}
+
+	system("pause");
+
+	//delete message;
+	//delete key;
+	//delete uOutput;
+	//delete output;
 
     return 0;
 }
