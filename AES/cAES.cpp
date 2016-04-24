@@ -178,16 +178,36 @@ uint8_t* cAES::Encrypt()
 	
 	//first the key is expanded.
 	//this takes 43 rounds of expansion, leaving a 43 column key(I think?)
+	/**************************************
+	//for testing aginst this tool http://people.eku.edu/styere/Encrypt/JS-AES.html
+	//m_key = 0x0f1571c947d9e8590cb7add6af7f6798
+	m_key[0] = 0x0f;
+	m_key[1] = 0x15;
+	m_key[2] = 0x71;
+	m_key[3] = 0xc9;
+	m_key[4] = 0x47;
+	m_key[5] = 0xd9;
+	m_key[6] = 0xe8;
+	m_key[7] = 0x59;
+	m_key[8] = 0x0c;
+	m_key[9] = 0xb7;
+	m_key[10] = 0xad;
+	m_key[11] = 0xd6;
+	m_key[12] = 0xaf;
+	m_key[13] = 0x7f;
+	m_key[14] = 0x67;
+	m_key[15] = 0x98;
+	/***********************************/
 	keyExpansion();
 	
 	//then run the AES operations
 	//this takes 9 rounds excluding the first add round key operation
 	//each round uses 16 bytes of the key (4 columns)
 	
-	//start by initalizing the state to all 0's
+	//start by initalizing the state to the initial message to encrypt
 	for(int i = 0; i < 16; i++)
 	{
-		m_state[i] = 0;
+		m_state[i] = m_msg[i];
 	}
 	
 	//then XOR in the first 4 columns of the key (XORing with 0's is like copying, XORing with all 1's is like inverting)
@@ -450,7 +470,7 @@ void cAES::testMixColumns()
 //runs the sbox subsitution on all 4 bytes passed in
 void cAES::subWord(uint8_t* sub)
 {
-	for (int i = 0; i < 3; i++, sub++)
+	for (int i = 0; i < 4; i++, sub++)
 	{
 		*sub = SBoxLookup(*sub);
 	}
@@ -661,7 +681,7 @@ void cAES::keyExpansion()
 			it = m_keyColumns.end();
 			m_keyColumns.insert(it, localColumn);
 			***********************************************/
-			operationPointer = ek((i - 4) * 4);
+			operationPointer = ek((i - 1) * 4);
 			for (int j = 0; j < 4; j++, operationPointer++)
 			{
 				operationData[j] = *operationPointer;
