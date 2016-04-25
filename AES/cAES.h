@@ -10,6 +10,7 @@ public:
 
 	uint8_t* Encrypt();
 
+	uint8_t* Decrypt();
 
 
 private:
@@ -62,7 +63,7 @@ private:
 
 	uint8_t galoisMult(uint8_t byte1, uint8_t byte2);
 
-	void mixColumns(uint8_t* localState);
+	void mixColumns(uint8_t* localState, bool decrypt = false);
 
 	uint8_t SBoxLookup(uint8_t hexValue);
 
@@ -70,14 +71,14 @@ private:
 
 	void rotateWord(uint8_t* rot);
 
-	void subWord(uint8_t* sub);
+	void subWord(uint8_t* sub, bool decrypt = false);
 
 	void addRoundKey(uint8_t* localState, int round);
 
-	void shiftRow(uint8_t* sub);
+	void shiftRow(uint8_t* sub, bool decrypt = false);
 
-	void keyExpansion();
+	void keyExpansion(bool decrypt = false);
 
-	void byteSub(uint8_t* sub);
+	void byteSub(uint8_t* sub, bool decrypt = false);
 };
 

@@ -160,10 +160,10 @@ cAES::cAES(uint8_t* initmsg, uint8_t* initKey)
 	***************************************/
 
 	//testAddRoundKey(); //disabled for now. Was filling up the keyColumns and not clearing them after, interfering with keyExpansion();
-	testRotateWord();
-	testSubWord();
-	testMixColumns();
-	testShiftRow();
+	//testRotateWord();
+	//testSubWord();
+	//testMixColumns();
+	//testShiftRow();
 	//keyExpansion();
 }
 
@@ -228,6 +228,34 @@ uint8_t* cAES::Encrypt()
 	shiftRow(m_state);
 	addRoundKey(m_state, 10);
 	
+	return m_state;
+}
+
+uint8_t* cAES::Decrypt()   /**************NEED TO INVERT FUNCTIONS  (DECRYPT MATRIX, ETC)***************/
+{
+	keyExpansion(true);
+
+	for (int i = 0; i < 16; i++)
+	{
+		m_state[i] = m_msg[i];
+	}
+
+	addRoundKey(m_state, 0);
+
+	//do rounds 0-8 (example table rounds) or rounds 1-9 (real rounds)
+	for (int i = 1; i <= 9; i++)
+	{
+		shiftRow(m_state, true);
+		byteSub(m_state, true);
+		addRoundKey(m_state, i);
+		mixColumns(m_state, true);
+	}
+
+	//do final round
+	shiftRow(m_state, true);
+	byteSub(m_state, true);
+	addRoundKey(m_state, 10);
+
 	return m_state;
 }
 
@@ -420,7 +448,7 @@ uint8_t cAES::galoisMult(uint8_t byte1, uint8_t byte2)
 	return retVal;
 }
 
-void cAES::mixColumns(uint8_t* localState)
+void cAES::mixColumns(uint8_t* localState, bool decrypt)
 {
 	int oldState[16];
 	for (int i = 0; i < 16; i++)
@@ -432,10 +460,16 @@ void cAES::mixColumns(uint8_t* localState)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			*localState = galoisMult(oldState[(i*4)], EncryptMultiplicationMatrix[j][0])
-				^ galoisMult(oldState[(i * 4) + 1], EncryptMultiplicationMatrix[j][1])
-				^ galoisMult(oldState[(i * 4) + 2], EncryptMultiplicationMatrix[j][2])
-				^ galoisMult(oldState[(i * 4) + 3], EncryptMultiplicationMatrix[j][3]);
+			if(decrypt)
+				*localState = galoisMult(oldState[(i*4)], DecryptMultiplicationMatrix[j][0])
+					^ galoisMult(oldState[(i * 4) + 1], DecryptMultiplicationMatrix[j][1])
+					^ galoisMult(oldState[(i * 4) + 2], DecryptMultiplicationMatrix[j][2])
+					^ galoisMult(oldState[(i * 4) + 3], DecryptMultiplicationMatrix[j][3]);
+			else
+				*localState = galoisMult(oldState[(i * 4)], EncryptMultiplicationMatrix[j][0])
+					^ galoisMult(oldState[(i * 4) + 1], EncryptMultiplicationMatrix[j][1])
+					^ galoisMult(oldState[(i * 4) + 2], EncryptMultiplicationMatrix[j][2])
+					^ galoisMult(oldState[(i * 4) + 3], EncryptMultiplicationMatrix[j][3]);
 			localState++;
 		}
 	}
@@ -481,11 +515,14 @@ void cAES::testMixColumns()
 }
 
 //runs the sbox subsitution on all 4 bytes passed in
-void cAES::subWord(uint8_t* sub)
+void cAES::subWord(uint8_t* sub, bool decrypt)
 {
 	for (int i = 0; i < 4; i++, sub++)
 	{
-		*sub = SBoxLookup(*sub);
+		if (decrypt)
+			*sub = inverseSBoxLookup(*sub);
+		else
+			*sub = SBoxLookup(*sub);
 	}
 }
 
@@ -518,7 +555,9 @@ bool cAES::testSubWord()
 //row 1 rotates 1 times
 //row 2 rotates 2 times
 //row 3 rotates 3 times
-void cAES::shiftRow(uint8_t* sub)
+
+//NEEDS TO SHIFT BACKWARDS WHEN DECRYPTING
+void cAES::shiftRow(uint8_t* sub, bool decrypt)
 {
 	uint8_t* originalSub = sub;
 	std::vector<Column> localColumn;
@@ -666,7 +705,7 @@ void cAES::testAddRoundKey()
 	//addRoundKey();
 }
 
-void cAES::keyExpansion()
+void cAES::keyExpansion(bool decrypt)
 {
 	std::vector<Column>::iterator it;
 	uint8_t operationData[4] = { 0 };
@@ -701,7 +740,11 @@ void cAES::keyExpansion()
 			}
 
 			rotateWord(operationData);
-			subWord(operationData);
+
+			if(decrypt)
+				subWord(operationData, true);
+			else
+				subWord(operationData);
 
 			operationPointer = rcon(i);//rcon((i / (16 / 4)) - 1); //ex for 4th round and a 16 byte key: rcon(4/(16 / 4)) - 1 = 0
 			for (int j = 0; j < 4; j++, operationPointer++)
@@ -743,10 +786,13 @@ void cAES::keyExpansion()
 }
 
 //runs the sbox substitution on all 16 bytes passed in
-void cAES::byteSub(uint8_t* sub)
+void cAES::byteSub(uint8_t* sub, bool decrypt)
 {
 	for (int i = 0; i < 16; i++, sub++)
 	{
-		*sub = SBoxLookup(*sub);
+		if(decrypt)
+			*sub = inverseSBoxLookup(*sub);
+		else
+			*sub = SBoxLookup(*sub);
 	}
 }
