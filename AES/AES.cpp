@@ -67,21 +67,23 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (success)
 	{
 		cout << "AES encryption succeded" << endl;
-
-		cout << "\n\nNext this will decrypt using the same key\n";
-		system("pause");
-
-		cAES AESDecrypt((uint8_t*)uOutput, (uint8_t*)key);
-		//TODO: loop input and output to iterate over multiple message blocks
-		uOutput = AESDecrypt.Decrypt();
-
-		std::cout << "Decrypt result: " << uOutput << endl;
-
 	}
 	else
 	{
 		cout << "AES encryption failed" << endl;
 	}
+
+
+	cout << "\n\nNext this will decrypt using the same key\n";
+	system("pause");
+
+	cAES AESDecrypt((uint8_t*)uOutput, (uint8_t*)key);
+	//TODO: loop input and output to iterate over multiple message blocks
+	uOutput = AESDecrypt.Decrypt();
+	uOutput[16] = '\0';
+
+	std::cout << "Decrypt result: " << uOutput << endl;
+
 
 	system("pause");
 
