@@ -240,10 +240,10 @@ uint8_t* cAES::Decrypt()   /**************NEED TO INVERT FUNCTIONS  (DECRYPT MAT
 		m_state[i] = m_msg[i];
 	}
 
-	addRoundKey(m_state, 0);
+	addRoundKey(m_state, 10);
 
 	//do rounds 0-8 (example table rounds) or rounds 1-9 (real rounds)
-	for (int i = 1; i <= 9; i++)
+	for (int i = 9; i > 0; i--)
 	{
 		shiftRow(m_state, true);
 		byteSub(m_state, true);
@@ -254,7 +254,7 @@ uint8_t* cAES::Decrypt()   /**************NEED TO INVERT FUNCTIONS  (DECRYPT MAT
 	//do final round
 	shiftRow(m_state, true);
 	byteSub(m_state, true);
-	addRoundKey(m_state, 10);
+	addRoundKey(m_state, 0);
 
 	return m_state;
 }
@@ -415,35 +415,38 @@ uint8_t cAES::galoisMult(uint8_t byte1, uint8_t byte2)
 {
 	int hexPart1 = 0;
 	int hexPart2 = 0;
-	int retVal;
+	int retVal = 0;
 
-	//lookup byte 1 in galois L table
-	//first find part 1 (first part of the byte in hex); if byte1 is less than 16, it is 0
-	if (byte1 > 16)
+	if ((byte1 != 0) & (byte2 != 0))
 	{
-		hexPart1 = byte1 / 16;
+		//lookup byte 1 in galois L table
+		//first find part 1 (first part of the byte in hex); if byte1 is less than 16, it is 0
+		if (byte1 > 16)
+		{
+			hexPart1 = byte1 / 16;
+		}
+		hexPart2 = byte1 % 16;
+
+		byte1 = GaloisLTable[hexPart1][hexPart2];
+
+		//repeat process for byte 2
+		hexPart1 = byte2 / 16;
+		hexPart2 = byte2 % 16;
+
+		byte2 = GaloisLTable[hexPart1][hexPart2];
+
+		//if sum greater than 0xFF, subtract 0xFF
+		retVal = byte1 + byte2;
+		if (retVal > 255)
+		{
+			retVal = retVal - 255;
+		}
+
+		//look up the (possably) modified sum on the E table to complete the multiply
+		hexPart1 = retVal / 16;
+		hexPart2 = retVal % 16;
+		retVal = GaloisETable[hexPart1][hexPart2];
 	}
-	hexPart2 = byte1 % 16;
-
-	byte1 = GaloisLTable[hexPart1][hexPart2];
-
-	//repeat process for byte 2
-	hexPart1 = byte2 / 16;
-	hexPart2 = byte2 % 16;
-
-	byte2 = GaloisLTable[hexPart1][hexPart2];
-
-	//if sum greater than 0xFF, subtract 0xFF
-	retVal = byte1 + byte2;
-	if (retVal > 255)
-	{
-		retVal = retVal - 255;
-	}
-
-	//look up the (possably) modified sum on the E table to complete the multiply
-	hexPart1 = retVal / 16;
-	hexPart2 = retVal % 16;
-	retVal = GaloisETable[hexPart1][hexPart2];
 
 	return retVal;
 }
@@ -555,8 +558,6 @@ bool cAES::testSubWord()
 //row 1 rotates 1 times
 //row 2 rotates 2 times
 //row 3 rotates 3 times
-
-//NEEDS TO SHIFT BACKWARDS WHEN DECRYPTING
 void cAES::shiftRow(uint8_t* sub, bool decrypt)
 {
 	uint8_t* originalSub = sub;
@@ -584,24 +585,48 @@ void cAES::shiftRow(uint8_t* sub, bool decrypt)
 	}
 
 	//rotate across rows
-	//row 0 = no rotate
-	//row 1 = rotate one
-	temp = localColumn[0].row1;
-	localColumn[0].row1 = localColumn[1].row1;
-	localColumn[1].row1 = localColumn[2].row1;
-	localColumn[2].row1 = localColumn[3].row1;
-	localColumn[3].row1 = temp;
+	if (decrypt)
+	{
+		//row 0 = no rotate
+		//row 1 = rotate one
+		temp = localColumn[0].row1;
+		localColumn[0].row1 = localColumn[3].row1;
+		localColumn[3].row1 = localColumn[2].row1;
+		localColumn[2].row1 = localColumn[1].row1;
+		localColumn[1].row1 = temp;
 
-	//row 2 = rotate two
-	std::swap(localColumn[0].row2, localColumn[2].row2);
-	std::swap(localColumn[1].row2, localColumn[3].row2);
+		//row 2 = rotate two
+		std::swap(localColumn[0].row2, localColumn[2].row2);
+		std::swap(localColumn[1].row2, localColumn[3].row2);
 
-	//row 3 = rotate three
-	temp = localColumn[0].row3;
-	localColumn[0].row3 = localColumn[3].row3;
-	localColumn[3].row3 = localColumn[2].row3;
-	localColumn[2].row3 = localColumn[1].row3;
-	localColumn[1].row3 = temp;
+		//row 3 = rotate three
+		temp = localColumn[0].row3;
+		localColumn[0].row3 = localColumn[1].row3;
+		localColumn[1].row3 = localColumn[2].row3;
+		localColumn[2].row3 = localColumn[3].row3;
+		localColumn[3].row3 = temp;
+	}
+	else
+	{
+		//row 0 = no rotate
+		//row 1 = rotate one
+		temp = localColumn[0].row1;
+		localColumn[0].row1 = localColumn[1].row1;
+		localColumn[1].row1 = localColumn[2].row1;
+		localColumn[2].row1 = localColumn[3].row1;
+		localColumn[3].row1 = temp;
+
+		//row 2 = rotate two
+		std::swap(localColumn[0].row2, localColumn[2].row2);
+		std::swap(localColumn[1].row2, localColumn[3].row2);
+
+		//row 3 = rotate three
+		temp = localColumn[0].row3;
+		localColumn[0].row3 = localColumn[3].row3;
+		localColumn[3].row3 = localColumn[2].row3;
+		localColumn[2].row3 = localColumn[1].row3;
+		localColumn[1].row3 = temp;
+	}
 
 	sub = originalSub;
 	for (int i = 0; i < 4; i++)
@@ -742,7 +767,7 @@ void cAES::keyExpansion(bool decrypt)
 			rotateWord(operationData);
 
 			if(decrypt)
-				subWord(operationData, true);
+				subWord(operationData);
 			else
 				subWord(operationData);
 
