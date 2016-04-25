@@ -422,9 +422,22 @@ uint8_t cAES::galoisMult(uint8_t byte1, uint8_t byte2)
 
 void cAES::mixColumns(uint8_t* localState)
 {
-	for(int i = 0; i < 16; i++)
+	int oldState[16];
+	for (int i = 0; i < 16; i++)
 	{
-		*localState = galoisMult(*localState, EncryptMultiplicationMatrix[i / 4][i % 4]);
+		oldState[i] = localState[i];
+	}
+	
+	for(int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			*localState = galoisMult(oldState[(i*4)], EncryptMultiplicationMatrix[j][0])
+				^ galoisMult(oldState[(i * 4) + 1], EncryptMultiplicationMatrix[j][1])
+				^ galoisMult(oldState[(i * 4) + 2], EncryptMultiplicationMatrix[j][2])
+				^ galoisMult(oldState[(i * 4) + 3], EncryptMultiplicationMatrix[j][3]);
+			localState++;
+		}
 	}
 	
 	//std::vector<Column> oldState = m_state;
